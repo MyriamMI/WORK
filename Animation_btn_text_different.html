@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bloc News — Slide-in à chaque clic (full CSS, variables)</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #111;
+        color: #eee;
+        font-family: Arial, Helvetica, sans-serif;
+        overflow: hidden !important;
+      }
+
+      .page {
+        min-height: 100vh;
+        display: flex;
+        gap: 1rem;
+        padding: 2rem;
+        position: relative;
+      }
+      .app {
+        position: relative;
+      }
+      .side {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+      }
+
+      /* Panneau de contrôle */
+      .panel {
+        position: absolute;
+        left: 2rem;
+        bottom: 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        z-index: 5;
+      }
+      .group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        background: #0f1a34;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.6rem;
+      }
+      .tag {
+        opacity: 0.8;
+        font-size: 0.9rem;
+        margin-right: 0.25rem;
+      }
+      .btn {
+        background: #1f6feb;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        user-select: none;
+      }
+      .btn:hover {
+        filter: brightness(1.1);
+      }
+
+      /* Radios accessibles mais invisibles (ne pas utiliser display:none) */
+      .sr-only {
+        position: absolute !important;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .bloc-news {
+        background: #0056b3;
+        color: #fff;
+        width: 420px;
+        max-height: 80vh;
+        padding: 20px;
+        border-radius: 0.42rem;
+        overflow: hidden;
+        position: relative;
+
+        /* --- COMPOSITION D’ANIMATIONS VIA VARIABLES --- */
+        /* Deux “canaux” d’animation : A = texte, B = animation choisie */
+        --replay-a: none;
+        --replay-b: none;
+        animation-name: var(--replay-a), var(--replay-b);
+        animation-duration: 0.5s, 1s;
+        animation-timing-function: ease-out, ease-out;
+        animation-fill-mode: both, both;
+      }
+
+      /* Pile des contenus */
+      .texts {
+        position: relative;
+        min-height: 8rem;
+      }
+      .content {
+        margin: 0;
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* --- Keyframes du CONTENEUR (plusieurs noms pour forcer le restart) --- */
+      @keyframes kf-container-slide-txt1 {
+        from {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes kf-container-slide-txt2 {
+        from {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes kf-container-slide-txt3 {
+        from {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes kf-container-slide-anim-slide {
+        from {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes kf-container-slide-anim-fade {
+        from {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes kf-container-slide-anim-zoom {
+        from {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes kf-container-slide-anim-up {
+        from {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      /* Quand on change de TEXTE -> on change --replay-a */
+      .app:has(#txt1:checked) .bloc-news {
+        --replay-a: kf-container-slide-txt1;
+      }
+      .app:has(#txt2:checked) .bloc-news {
+        --replay-a: kf-container-slide-txt2;
+      }
+      .app:has(#txt3:checked) .bloc-news {
+        --replay-a: kf-container-slide-txt3;
+      }
+
+      /* Quand on change d’ANIMATION -> on change --replay-b */
+      .app:has(#anim-slide:checked) .bloc-news {
+        --replay-b: kf-container-slide-anim-slide;
+      }
+      .app:has(#anim-fade:checked) .bloc-news {
+        --replay-b: kf-container-slide-anim-fade;
+      }
+      .app:has(#anim-zoom:checked) .bloc-news {
+        --replay-b: kf-container-slide-anim-zoom;
+      }
+      .app:has(#anim-up:checked) .bloc-news {
+        --replay-b: kf-container-slide-anim-up;
+      }
+
+      /* --- TEXTE visible selon le bouton texte --- */
+      #txt1:checked ~ .side .bloc-news .content1,
+      #txt2:checked ~ .side .bloc-news .content2,
+      #txt3:checked ~ .side .bloc-news .content3 {
+        opacity: 1;
+        pointer-events: auto;
+        position: relative;
+      }
+
+      /* --- Animations du TEXTE (selon le bouton animation) --- */
+      @keyframes kf-fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes kf-slide-in {
+        from {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes kf-zoom-in {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes kf-slide-up {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .app:has(#anim-fade:checked):has(#txt1:checked) .content1 {
+        animation: kf-fade-in 0.8s ease-out both 0.2s;
+      }
+      .app:has(#anim-fade:checked):has(#txt2:checked) .content2 {
+        animation: kf-fade-in 0.8s ease-out both 0.2s;
+      }
+      .app:has(#anim-fade:checked):has(#txt3:checked) .content3 {
+        animation: kf-fade-in 0.8s ease-out both 0.2s;
+      }
+
+      .app:has(#anim-slide:checked):has(#txt1:checked) .content1 {
+        animation: kf-slide-in 0.8s ease-out both 0.2s;
+      }
+      .app:has(#anim-slide:checked):has(#txt2:checked) .content2 {
+        animation: kf-slide-in 0.8s ease-out both 0.2s;
+      }
+      .app:has(#anim-slide:checked):has(#txt3:checked) .content3 {
+        animation: kf-slide-in 0.8s ease-out both 0.2s;
+      }
+
+      .app:has(#anim-zoom:checked):has(#txt1:checked) .content1 {
+        animation: kf-zoom-in 0.8s ease-out both 0.2s;
+      }
+      .app:has(#anim-zoom:checked):has(#txt2:checked) .content2 {
+        animation: kf-zoom-in 0.8s ease-out both 0.2s;
+      }
+      .app:has(#anim-zoom:checked):has(#txt3:checked) .content3 {
+        animation: kf-zoom-in 0.8s ease-out both 0.2s;
+      }
+
+      .app:has(#anim-up:checked):has(#txt1:checked) .content1 {
+        animation: kf-slide-up 0.8s ease-out both 0.2s;
+      }
+      .app:has(#anim-up:checked):has(#txt2:checked) .content2 {
+        animation: kf-slide-up 0.8s ease-out both 0.2s;
+      }
+      .app:has(#anim-up:checked):has(#txt3:checked) .content3 {
+        animation: kf-slide-up 0.8s ease-out both 0.2s;
+      }
+
+      /* Boutons*/
+      .app:has(#anim-slide:checked) .anim-group label[for="anim-slide"],
+      .app:has(#anim-fade:checked) .anim-group label[for="anim-fade"],
+      .app:has(#anim-zoom:checked) .anim-group label[for="anim-zoom"],
+      .app:has(#anim-up:checked) .anim-group label[for="anim-up"],
+      .app:has(#txt1:checked) .txt-group label[for="txt1"],
+      .app:has(#txt2:checked) .txt-group label[for="txt2"],
+      .app:has(#txt3:checked) .txt-group label[for="txt3"] {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app page">
+      <!-- Radios pour animations (AVANT .side pour que ~ fonctionne) -->
+      <input class="sr-only" type="radio" name="anim" id="anim-slide" checked />
+      <input class="sr-only" type="radio" name="anim" id="anim-fade" />
+      <input class="sr-only" type="radio" name="anim" id="anim-zoom" />
+      <input class="sr-only" type="radio" name="anim" id="anim-up" />
+
+      <!-- Radios pour textes -->
+      <input class="sr-only" type="radio" name="txt" id="txt1" checked />
+      <input class="sr-only" type="radio" name="txt" id="txt2" />
+      <input class="sr-only" type="radio" name="txt" id="txt3" />
+
+      <!-- Panneau de contrôle -->
+      <div class="panel">
+        <div class="group anim-group">
+          <span class="tag">Animation :</span>
+          <label class="btn" for="anim-slide">slide-in</label>
+          <label class="btn" for="anim-fade">fade-in</label>
+          <label class="btn" for="anim-zoom">zoom-in</label>
+          <label class="btn" for="anim-up">slide-up</label>
+        </div>
+        <div class="group txt-group">
+          <span class="tag">Texte :</span>
+          <label class="btn" for="txt1">1</label>
+          <label class="btn" for="txt2">2</label>
+          <label class="btn" for="txt3">3</label>
+        </div>
+      </div>
+
+      <!-- Bloc News -->
+      <div class="side">
+        <div class="bloc-news">
+          <div class="texts">
+            <p class="content content1">
+              You see, je ne suis pas un simple danseur car là, j’ai un chien à
+              côté de moi et je le caresse, parce que spirituellement on est
+              tous ensemble, ok ? Il y a un an, je t’aurais parlé de mes
+              muscles.
+            </p>
+            <p class="content content2">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio
+              inventore vel aliquam natus sunt excepturi non, architecto sequi
+              corrupti accusamus dicta quidem cumque deleniti.
+            </p>
+            <p class="content content3">
+              So perhaps, you've generated some fancy text, and you're wondering
+              how it's even possible to change the “font” of your text…
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
